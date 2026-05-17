@@ -9,8 +9,9 @@ Mobile-first ToDo web app built with Next.js, React, Redux Toolkit, Axios, MUI, 
 - Task details modal
 - Mobile-first responsive layout
 - Redux Toolkit state management
-- Axios service layer with optional backend configuration
-- Local storage fallback when no API URL is configured
+- Axios service layer
+- MongoDB persistence through Next.js API routes
+- Optional local storage fallback for offline demos
 
 ## Setup
 
@@ -21,22 +22,29 @@ npm run dev
 
 Open `http://localhost:3000`.
 
-## Backend API
+## Environment
 
-Set `NEXT_PUBLIC_TODO_API_URL` in `.env.local` to connect to the provided API.
+Create `.env.local` from `.env.example` and set your MongoDB URI.
 
 ```bash
-NEXT_PUBLIC_TODO_API_URL=https://your-api-base-url.com
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/
+NEXT_PUBLIC_TODO_API_URL=/api
 ```
 
-The app expects common REST endpoints:
+The app uses the database name `todo-web-typescript`.
 
-- `GET /todos`
-- `POST /todos`
-- `PUT /todos/:id`
-- `DELETE /todos/:id`
+## Backend API
 
-If no API URL is set, tasks are stored locally in the browser.
+By default the frontend calls the built-in Next.js API at `/api`.
+
+Endpoints:
+
+- `GET /api/todos`
+- `POST /api/todos`
+- `PUT /api/todos/:id`
+- `DELETE /api/todos/:id`
+
+Set `NEXT_PUBLIC_USE_LOCAL_STORAGE=true` to use browser local storage instead.
 
 ## Scripts
 

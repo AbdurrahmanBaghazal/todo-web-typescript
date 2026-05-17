@@ -1,4 +1,4 @@
-import { apiClient, hasConfiguredApi } from "@/lib/apiClient";
+import { apiClient, shouldUseLocalStorage } from "@/lib/apiClient";
 import type { Todo, TodoDraft } from "@/types/todo";
 
 const STORAGE_KEY = "todo-web.tasks";
@@ -115,6 +115,6 @@ class AxiosTodoRepository implements TodoRepository {
   }
 }
 
-export const todoRepository: TodoRepository = hasConfiguredApi()
-  ? new AxiosTodoRepository()
-  : new LocalTodoRepository();
+export const todoRepository: TodoRepository = shouldUseLocalStorage()
+  ? new LocalTodoRepository()
+  : new AxiosTodoRepository();
