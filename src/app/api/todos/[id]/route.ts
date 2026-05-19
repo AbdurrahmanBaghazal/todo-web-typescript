@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 import { NextResponse } from "next/server";
 import { connectMongoDB } from "@/lib/mongodb";
+import { isEndDateAfterStartDate } from "@/lib/todoDates";
 import { TodoModel } from "@/models/TodoModel";
 import type { Todo, TodoDraft } from "@/types/todo";
 
@@ -46,6 +47,13 @@ export async function PUT(request: Request, context: RouteContext) {
   }
 
   const draft = (await request.json()) as TodoDraft;
+
+  if (!isEndDateAfterStartDate(draft.startDate, draft.endDate)) {
+    return NextResponse.json(
+      { error: "End date must be after the start date" },
+      { status: 400 }
+    );
+  }
 
   await connectMongoDB();
   const todo = await TodoModel.findByIdAndUpdate(

@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import { createTodo, updateTodo } from "../todosSlice";
 import { useAppDispatch } from "@/store/hooks";
+import { getDateAfter, isEndDateAfterStartDate } from "@/lib/todoDates";
 import type { TodoDraft } from "@/types/todo";
 
 const emptyDraft: TodoDraft = {
@@ -46,12 +47,21 @@ export function TodoFormDialog({
   const [draft, setDraft] = useState<TodoDraft>(initialValue ?? emptyDraft);
   const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
+  const endDateMin = getDateAfter(draft.startDate);
+  const hasInvalidDateRange =
+    Boolean(draft.startDate && draft.endDate) &&
+    !isEndDateAfterStartDate(draft.startDate, draft.endDate);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitted(true);
 
-    if (!draft.title.trim() || !draft.startDate || !draft.endDate) {
+    if (
+      !draft.title.trim() ||
+      !draft.startDate ||
+      !draft.endDate ||
+      hasInvalidDateRange
+    ) {
       return;
     }
 
@@ -112,12 +122,12 @@ export function TodoFormDialog({
             <TextField
               fullWidth
               label="Start date"
-              placeholder="YYYY-MM-DD"
+              type="date"
               value={draft.startDate}
               error={submitted && !draft.startDate}
               helperText={submitted && !draft.startDate ? "Required" : " "}
               slotProps={{
-                htmlInput: { inputMode: "numeric" }
+                inputLabel: { shrink: true }
               }}
               onChange={(event) =>
                 setDraft((current) => ({
@@ -130,12 +140,19 @@ export function TodoFormDialog({
             <TextField
               fullWidth
               label="End date"
-              placeholder="YYYY-MM-DD"
+              type="date"
               value={draft.endDate}
-              error={submitted && !draft.endDate}
-              helperText={submitted && !draft.endDate ? "Required" : " "}
+              error={submitted && (!draft.endDate || hasInvalidDateRange)}
+              helperText={
+                submitted && !draft.endDate
+                  ? "Required"
+                  : submitted && hasInvalidDateRange
+                    ? "End date must be after the start date"
+                    : " "
+              }
               slotProps={{
-                htmlInput: { inputMode: "numeric" }
+                htmlInput: { min: endDateMin },
+                inputLabel: { shrink: true }
               }}
               onChange={(event) =>
                 setDraft((current) => ({

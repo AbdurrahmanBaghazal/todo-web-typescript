@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { connectMongoDB } from "@/lib/mongodb";
+import { isEndDateAfterStartDate } from "@/lib/todoDates";
 import { TodoModel } from "@/models/TodoModel";
 import type { Todo, TodoDraft } from "@/types/todo";
 
@@ -45,6 +46,14 @@ function validateTodoDraft(draft: Partial<TodoDraft>) {
   return missingFields;
 }
 
+function validateDateRange(draft: Partial<TodoDraft>) {
+  if (!draft.startDate || !draft.endDate) {
+    return false;
+  }
+
+  return isEndDateAfterStartDate(draft.startDate, draft.endDate);
+}
+
 export async function GET() {
   await connectMongoDB();
   const todos = await TodoModel.find({}).sort({ createdAt: -1 }).lean();
@@ -62,6 +71,13 @@ export async function POST(request: Request) {
         error: "Please fill all required fields",
         missingFields
       },
+      { status: 400 }
+    );
+  }
+
+  if (!validateDateRange(draft)) {
+    return NextResponse.json(
+      { error: "End date must be after the start date" },
       { status: 400 }
     );
   }
