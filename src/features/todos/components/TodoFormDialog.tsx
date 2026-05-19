@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
+import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import SaveRoundedIcon from "@mui/icons-material/SaveRounded";
 import {
   Button,
@@ -10,6 +11,8 @@ import {
   DialogContent,
   DialogTitle,
   FormControlLabel,
+  IconButton,
+  InputAdornment,
   Stack,
   TextField
 } from "@mui/material";
@@ -44,6 +47,8 @@ export function TodoFormDialog({
   todoId
 }: TodoFormDialogProps) {
   const dispatch = useAppDispatch();
+  const startDateInputRef = useRef<HTMLInputElement>(null);
+  const endDateInputRef = useRef<HTMLInputElement>(null);
   const [draft, setDraft] = useState<TodoDraft>(initialValue ?? emptyDraft);
   const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -51,6 +56,32 @@ export function TodoFormDialog({
   const hasInvalidDateRange =
     Boolean(draft.startDate && draft.endDate) &&
     !isEndDateAfterStartDate(draft.startDate, draft.endDate);
+
+  function openDatePicker(input: HTMLInputElement | null) {
+    if (!input) {
+      return;
+    }
+
+    try {
+      input.showPicker();
+    } catch {
+      input.focus();
+    }
+  }
+
+  function updateStartDate(value: string) {
+    setDraft((current) => ({
+      ...current,
+      startDate: value
+    }));
+  }
+
+  function updateEndDate(value: string) {
+    setDraft((current) => ({
+      ...current,
+      endDate: value
+    }));
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -121,44 +152,72 @@ export function TodoFormDialog({
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
             <TextField
               fullWidth
+              inputRef={startDateInputRef}
               label="Start date"
               type="date"
               value={draft.startDate}
               error={submitted && !draft.startDate}
               helperText={submitted && !draft.startDate ? "Required" : " "}
               slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="Open start date calendar"
+                        edge="end"
+                        onClick={() => openDatePicker(startDateInputRef.current)}
+                      >
+                        <CalendarMonthRoundedIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                },
                 inputLabel: { shrink: true }
               }}
               onChange={(event) =>
-                setDraft((current) => ({
-                  ...current,
-                  startDate: event.target.value
-                }))
+                updateStartDate(event.target.value)
+              }
+              onInput={(event) =>
+                updateStartDate((event.target as HTMLInputElement).value)
               }
             />
 
             <TextField
               fullWidth
+              inputRef={endDateInputRef}
               label="End date"
               type="date"
               value={draft.endDate}
-              error={submitted && (!draft.endDate || hasInvalidDateRange)}
+              error={(submitted && !draft.endDate) || hasInvalidDateRange}
               helperText={
                 submitted && !draft.endDate
                   ? "Required"
-                  : submitted && hasInvalidDateRange
+                  : hasInvalidDateRange
                     ? "End date must be after the start date"
                     : " "
               }
               slotProps={{
                 htmlInput: { min: endDateMin },
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="Open end date calendar"
+                        edge="end"
+                        onClick={() => openDatePicker(endDateInputRef.current)}
+                      >
+                        <CalendarMonthRoundedIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                },
                 inputLabel: { shrink: true }
               }}
               onChange={(event) =>
-                setDraft((current) => ({
-                  ...current,
-                  endDate: event.target.value
-                }))
+                updateEndDate(event.target.value)
+              }
+              onInput={(event) =>
+                updateEndDate((event.target as HTMLInputElement).value)
               }
             />
           </Stack>
